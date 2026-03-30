@@ -1,0 +1,29 @@
+[Unit]
+Description=Golf Scorecard App
+Documentation=https://github.com/your-org/Golf-Score-Cart
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+
+# Absolute path to the project — adjust if you cloned elsewhere
+WorkingDirectory=/home/pi/Golf-Score-Cart
+
+Environment=NODE_ENV=production
+Environment=PORT=3000
+
+ExecStart=/usr/bin/node --enable-source-maps /home/pi/Golf-Score-Cart/artifacts/api-server/dist/index.mjs
+
+# Restart on crash, wait 5 s before retry
+Restart=on-failure
+RestartSec=5
+
+# Write logs to the journal (view with: journalctl -u golf-scorecard -f)
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=golf-scorecard
+
+[Install]
+WantedBy=multi-user.target

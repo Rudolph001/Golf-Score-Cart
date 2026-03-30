@@ -1,0 +1,19 @@
+packages:
+  "framer-motion": "For smooth transitions between holes and page entries"
+  "date-fns": "For formatting scorecard dates easily"
+  "clsx": "Utility for constructing class names"
+  "tailwind-merge": "Utility for merging tailwind classes"
+  "lucide-react": "Beautiful icons for the interface"
+  "react-hook-form": "For the new round player form"
+
+images:
+  - path: "artifacts/golf-scorecard/public/images/golf-hero.png"
+    description: "A beautiful, serene, manicured golf course fairway at sunrise with morning dew, moody light, tall pine trees, minimal and modern, suitable for a subtle background, dark green and gold tones"
+    aspect_ratio: "16:9"
+  - path: "artifacts/golf-scorecard/public/images/golf-pattern.png"
+    description: "Abstract geometric pattern using golf elements like tees, balls, and flags in a very subtle, low-opacity, monochromatic dark green style, useful for a texture overlay"
+    aspect_ratio: "1:1"
+
+notes:
+  - We use the provided @workspace/api-client-react hooks but wrap them locally to provide react-query invalidation.
+  - Assume South African/WHS style net scoring: Handicap implies shots received per 18 holes, distributed by Stroke Index.
