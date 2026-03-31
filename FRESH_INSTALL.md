@@ -220,41 +220,41 @@ Press Ctrl+C when done watching.
 
 ## PART 7 — Show the App on the Pi's Own Screen (Kiosk Mode)
 
-If the Pi has a screen connected (HDMI or touchscreen), you can make the app open fullscreen automatically on boot.
-The app will be the ONLY thing on screen — no desktop, no taskbar, no icons.
+Your Pi runs Wayland (not the older X11 system). This requires a different setup using
+`cage` — a Wayland kiosk compositor that runs one app fullscreen with nothing else visible.
 
 ### Step 17 — Pull the latest files from GitHub
 
     cd ~/Golf-Score-Cart && git pull
 
-### Step 18 — Disable the old kiosk service (if you ran it before)
+### Step 18 — Install cage and epiphany-browser
+
+    sudo apt-get install -y cage epiphany-browser
+
+### Step 19 — Remove old X11 kiosk setup (if you ran the old steps before)
 
     sudo systemctl disable golf-kiosk
+    sed -i '/startx/d' ~/.bash_profile
+    rm -f ~/.xinitrc
 
-If you see `Failed to disable: Unit file golf-kiosk.service does not exist` that is fine, just continue.
+If you see errors about files not existing, that is fine — just continue.
 
-### Step 19 — Set the Pi to boot to console (no desktop)
+### Step 20 — Set the Pi to boot to console (no desktop)
 
     sudo raspi-config nonint do_boot_behaviour B2
 
-This makes the Pi boot straight to a text login and auto-login as `pi`.
-No desktop loads — this is intentional. The app will take over the screen instead.
+This makes the Pi boot to a text console and auto-login as `pi`.
+The kiosk will launch instead of the desktop.
 
-### Step 20 — Install the lightweight browser and window manager
+### Step 21 — Add the kiosk launch line to your profile
 
-Chromium is too heavy for Pi devices with less than 1GB of RAM.
-Instead this setup uses `epiphany-browser` (WebKitGTK) — much lighter, no warnings, no dialogs.
-`matchbox-window-manager` forces the browser window to fill the entire screen automatically.
+    echo '[[ -z $DISPLAY && -z $WAYLAND_DISPLAY && $XDG_VTNR -eq 1 ]] && exec bash /home/pi/Golf-Score-Cart/kiosk.sh' >> ~/.bash_profile
 
-    sudo apt-get install -y epiphany-browser matchbox-window-manager
+### Step 22 — Confirm the line was added
 
-### Step 21 — Create a minimal display session that runs only the app
+    tail -3 ~/.bash_profile
 
-    echo 'exec bash /home/pi/Golf-Score-Cart/kiosk.sh' > ~/.xinitrc
-
-### Step 22 — Start the display automatically when the Pi logs in
-
-    echo '[[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && startx -- -nocursor' >> ~/.bash_profile
+You should see the line containing `exec bash /home/pi/Golf-Score-Cart/kiosk.sh` at the bottom.
 
 ### Step 23 — Reboot
 
@@ -262,28 +262,17 @@ Instead this setup uses `epiphany-browser` (WebKitGTK) — much lighter, no warn
 
 On next boot the Pi will:
 1. Boot to console and auto-login as `pi`
-2. Automatically start the display system (`startx`)
-3. Start the Golf Scorecard app server in the background (via the existing service)
-4. Wait until the server is ready (up to 3 minutes)
-5. Open Chromium fullscreen — the app fills the entire screen with nothing else visible
+2. Detect it is on the screen (not SSH) and run the kiosk script
+3. Wait until the Golf Scorecard server is ready (up to 3 minutes)
+4. Open epiphany fullscreen via cage — the app fills the entire screen
 
 SSH still works normally from other computers at all times.
-The app is also still accessible from other devices at `http://golfcart.local:3000`.
+The app is also accessible from other devices at `http://golfcart.local:3000`.
 
-### Optional — Hide the mouse cursor on touchscreen
+### Optional — Hide the mouse cursor
 
-    sudo apt-get install -y unclutter
-    echo 'unclutter -idle 0.5 -root &' >> ~/.xinitrc
-
-### Optional — Custom Golf Scorecard boot splash screen
-
-This replaces the Raspberry Pi logo on boot with a green Golf Scorecard screen.
-Run this once on the Pi:
-
-    bash ~/Golf-Score-Cart/scripts/create-splash.sh
-
-The script installs ImageMagick, draws the splash image, and installs it.
-After the next reboot you will see the Golf Scorecard boot screen instead of the Pi logo.
+    sudo apt-get install -y wlr-randr
+    echo 'seat seat0 hide-cursor when-typing enabled' | sudo tee -a /etc/cage/config
 
 ---
 
