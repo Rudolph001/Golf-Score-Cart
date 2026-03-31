@@ -23,8 +23,9 @@ done
 # Start matchbox window manager — forces every window fullscreen with no titlebar
 matchbox-window-manager -use_titlebar no &
 
-# Remove stale profile lock if left over from a crash
+# Remove stale profile lock if left over from a crash, then recreate the directory
 rm -rf /tmp/epiphany-kiosk
+mkdir -p /tmp/epiphany-kiosk
 
 # Launch epiphany in application mode (no address bar, no tabs, no browser chrome)
 exec epiphany-browser \
