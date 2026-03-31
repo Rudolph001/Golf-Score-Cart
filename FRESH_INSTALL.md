@@ -1,14 +1,18 @@
 # Golf Scorecard — Fresh Install Guide for Raspberry Pi
 
-This guide fixes every problem we encountered and walks you through a clean install from scratch.
-Follow the steps **in order** — the Windows PC steps must happen before touching the Pi.
+Follow the steps **in order**. Do not skip steps.
+The Windows PC steps must happen before touching the Pi.
+
+**Recommended hardware:**
+- Raspberry Pi 4 or Pi 5 (4GB RAM)
+- Raspberry Pi OS Desktop 64-bit (not Lite — the Desktop version includes all the graphics drivers needed)
 
 ---
 
-## PART 1 — Fix the Windows PC First (Do This Before Anything on the Pi)
+## PART 1 — Prepare the Windows PC
 
-This step generates a proper install list (lockfile) that includes the Pi's ARM64 packages.
-Without this, the Pi tries to download 492 packages on its own and fails every time.
+This step generates a package lockfile that includes Raspberry Pi ARM64 packages.
+Without this, the Pi tries to download everything itself and fails.
 
 ### Step 1 — Open a terminal on your Windows PC
 
@@ -18,55 +22,63 @@ Navigate to the project folder:
 
     cd "E:\Golf Cart\Software\Golf-Score-Cart"
 
-### Step 2 — Delete the old broken lockfile
+### Step 2 — Delete the old lockfile
 
     del pnpm-lock.yaml
 
-### Step 3 — Regenerate the lockfile with Pi-compatible packages
+### Step 3 — Regenerate the lockfile
 
     npx pnpm install --ignore-scripts
 
-This will take a few minutes. Wait for it to finish completely.
-You will see output like: `Progress: resolved 492, reused 0, downloaded 492, added 492`
+Wait for it to finish. You will see:
 
-### Step 4 — Commit and push the new lockfile to GitHub
+    Progress: resolved 492, reused 0, downloaded 492, added 492
+
+### Step 4 — Push to GitHub
 
     git add pnpm-lock.yaml .npmrc
-    git commit -m "fix: add linux-arm64 packages to lockfile"
+    git commit -m "fix: regenerate lockfile with arm64 packages"
     git push
 
-GitHub will ask for your username and password.
-Use your **Personal Access Token** as the password (not your GitHub account password).
+Use your GitHub **Personal Access Token** as the password when asked.
 
-That is all you need to do on Windows. Now go to the Pi.
+That is all on Windows. Now go to the Pi.
 
 ---
 
-## PART 2 — Clean Up the Pi
+## PART 2 — Flash the Pi and First Boot
 
-### Step 5 — SSH into the Pi from your Windows PC
+### Step 5 — Flash Raspberry Pi OS
 
-Open a new Command Prompt window and type:
+Use **Raspberry Pi Imager** on your Windows PC:
+
+1. Download from https://www.raspberrypi.com/software/
+2. Choose OS: **Raspberry Pi OS (64-bit)** — the one labelled "Desktop"
+3. Before writing, click the settings gear icon and set:
+   - Hostname: `golfcart`
+   - Username: `pi`
+   - Password: your choice
+   - Enable SSH: yes
+   - Wi-Fi: enter your network name and password
+4. Write to SD card and insert into the Pi
+
+### Step 6 — SSH into the Pi
+
+On your Windows PC open a new Command Prompt:
 
     ssh pi@golfcart.local
 
-If that does not work, use the Pi's IP address:
+If that does not work, find the Pi's IP from your router and use:
 
     ssh pi@192.168.x.x
 
-### Step 6 — Remove the old broken installation
-
-    rm -rf ~/Golf-Score-Cart
-
-This deletes the old project folder with all its broken files. This is safe — the project code is on GitHub.
-
 ---
 
-## PART 3 — Set Up the Pi (Only Needed Once)
+## PART 3 — Configure the Pi (One Time Only)
 
-### Step 7 — Add swap memory (prevents crashes during build)
+### Step 7 — Add swap memory
 
-The Pi has limited RAM. A swap file gives it extra breathing room.
+The Pi needs extra memory breathing room during the build.
 
     sudo fallocate -l 1G /swapfile
     sudo chmod 600 /swapfile
@@ -78,13 +90,16 @@ Confirm it worked:
 
     free -h
 
-You should see a `Swap:` line showing about `1.0G`.
+You should see a `Swap:` row showing `1.0G`.
 
-### Step 8 — Install tmux (protects against SSH disconnections)
+### Step 8 — Install required tools
 
-If the SSH connection drops during a long install, tmux lets you reconnect and continue.
+    sudo apt-get update
+    sudo apt-get install -y tmux curl cage chromium
 
-    sudo apt-get install -y tmux
+- `tmux` — protects long installs from SSH disconnects
+- `cage` — Wayland kiosk compositor for fullscreen display
+- `chromium` — the browser shown on the Pi's screen
 
 ### Step 9 — Install Node.js v20
 
@@ -106,41 +121,41 @@ Verify:
 
     pnpm -v
 
-You should see `10.x.x` or similar.
+You should see `10.x.x`.
+
+### Step 11 — Give the pi user access to graphics hardware
+
+    sudo usermod -aG video,input,render pi
 
 ---
 
 ## PART 4 — Install and Build the App
 
-### Step 11 — Start tmux (do this before anything else)
+### Step 12 — Start tmux
+
+Always do this before long commands. If SSH drops you can reconnect and resume.
 
     tmux
 
-You are now inside a protected session. If SSH drops, reconnect and type `tmux attach` to resume.
+To reconnect after a dropout: `tmux attach`
 
-### Step 12 — Clone the project
+### Step 13 — Clone the project
 
     cd ~
     git clone https://github.com/Rudolph001/Golf-Score-Cart.git Golf-Score-Cart
 
-GitHub will ask for your username and password.
-Use your **Personal Access Token** as the password.
+Use your GitHub Personal Access Token as the password.
 
-### Step 13 — Install packages and build
+### Step 14 — Install and build
 
     cd ~/Golf-Score-Cart && pnpm install && pnpm run build:prod
 
-Because of the lockfile you generated on Windows in Part 1, this will be fast.
-pnpm will only download ~20 ARM64-specific files instead of 500+ packages.
-
-Wait for the build to finish. You will see output ending with something like:
+This will take a while on first run. When done you will see output like:
 
     dist/public/index.html    x.xx kB
     dist/public/assets/...    xxx kB
 
-That means the build succeeded.
-
-### Step 14 — Test the app manually
+### Step 15 — Test the app
 
     bash ~/Golf-Score-Cart/start-pi.sh
 
@@ -150,199 +165,160 @@ You should see:
     URL  : http://localhost:3000
     Mode : production
 
-Open a browser on your phone or laptop (on the same Wi-Fi) and go to:
-
-    http://golfcart.local:3000
-
+Open a browser on your phone or laptop and go to `http://golfcart.local:3000`.
 You should see the Golf Scorecard app. Press Ctrl+C to stop it.
 
 ---
 
-## PART 5 — Make the App Start Automatically on Boot
+## PART 5 — Auto-Start on Boot
 
-### Step 15 — Install the auto-start service
+### Step 16 — Install the service
 
     sudo cp ~/Golf-Score-Cart/golf-scorecard.service /etc/systemd/system/
     sudo systemctl daemon-reload
     sudo systemctl enable golf-scorecard
     sudo systemctl start golf-scorecard
 
-### Step 16 — Confirm it is running
+### Step 17 — Confirm it is running
 
     sudo systemctl status golf-scorecard
 
 You should see `Active: active (running)` in green. Press `q` to exit.
 
-The app now starts automatically every time the Pi powers on.
+The app now starts automatically on every boot and is accessible from any device on the same Wi-Fi at `http://golfcart.local:3000`.
 
 ---
 
-## PART 6 — Updating the App in the Future
+## PART 6 — Kiosk Mode (App on Pi's Own Screen)
 
-The Pi is set up to **automatically check for updates every time it boots**. When it starts up it will:
-1. Pull the latest code from GitHub
-2. Reinstall packages if anything changed
-3. Rebuild the app if anything changed
-4. Start the app
+This makes the Pi boot straight into the Golf Scorecard app fullscreen — no desktop, no browser bar, no popups.
 
-So in most cases, all you need to do is:
-
-**On your Windows PC — push your changes:**
-
-    cd "E:\Golf Cart\Software\Golf-Score-Cart"
-    git add .
-    git commit -m "describe what you changed"
-    git push
-
-**Then reboot the Pi:**
-
-    sudo reboot
-
-The Pi will boot, detect the new code, rebuild automatically, and start the app. No other input needed.
-
----
-
-### If you want the update to happen without rebooting
-
-SSH into the Pi and run:
-
-    sudo systemctl restart golf-scorecard
-
-This restarts the service which runs the update script again — it will pull, rebuild if needed, and restart the app.
-
-To watch the update progress live:
-
-    journalctl -u golf-scorecard -f
-
-Press Ctrl+C when done watching.
-
----
-
-## PART 7 — Show the App on the Pi's Own Screen (Kiosk Mode)
-
-Your Pi runs Wayland (not the older X11 system). This requires a different setup using
-`cage` — a Wayland kiosk compositor that runs one app fullscreen with nothing else visible.
-
-### Step 17 — Pull the latest files from GitHub
-
-    cd ~/Golf-Score-Cart && git pull
-
-### Step 18 — Install cage and epiphany-browser
-
-    sudo apt-get install -y cage epiphany-browser
-
-### Step 19 — Remove old X11 kiosk setup (if you ran the old steps before)
-
-    sudo systemctl disable golf-kiosk
-    sed -i '/startx/d' ~/.bash_profile
-    rm -f ~/.xinitrc
-
-If you see errors about files not existing, that is fine — just continue.
-
-### Step 20 — Set the Pi to boot to console (no desktop)
+### Step 18 — Boot to console instead of desktop
 
     sudo raspi-config nonint do_boot_behaviour B2
 
 This makes the Pi boot to a text console and auto-login as `pi`.
-The kiosk will launch instead of the desktop.
+The desktop will not load — all RAM is kept free for the app.
 
-### Step 21 — Add the kiosk launch line to your profile
+### Step 19 — Remove any old kiosk setup
 
-    echo '[[ -z $DISPLAY && -z $WAYLAND_DISPLAY && $XDG_VTNR -eq 1 ]] && exec bash /home/pi/Golf-Score-Cart/kiosk.sh' >> ~/.bash_profile
+    sudo systemctl disable golf-kiosk 2>/dev/null || true
+    sed -i '/kiosk/d' ~/.bash_profile
 
-### Step 22 — Confirm the line was added
+### Step 20 — Add the kiosk launch line
+
+    echo '[[ -z $DISPLAY && -z $WAYLAND_DISPLAY && $XDG_VTNR -eq 1 ]] && bash /home/pi/Golf-Score-Cart/kiosk.sh' >> ~/.bash_profile
+
+### Step 21 — Confirm it was added correctly
 
     tail -3 ~/.bash_profile
 
-You should see the line containing `exec bash /home/pi/Golf-Score-Cart/kiosk.sh` at the bottom.
+The last line must be exactly:
 
-### Step 23 — Reboot
+    [[ -z $DISPLAY && -z $WAYLAND_DISPLAY && $XDG_VTNR -eq 1 ]] && bash /home/pi/Golf-Score-Cart/kiosk.sh
+
+### Step 22 — Reboot
 
     sudo reboot
 
 On next boot the Pi will:
 1. Boot to console and auto-login as `pi`
-2. Detect it is on the screen (not SSH) and run the kiosk script
-3. Wait until the Golf Scorecard server is ready (up to 3 minutes)
-4. Open epiphany fullscreen via cage — the app fills the entire screen
+2. Start the Golf Scorecard server in the background
+3. Wait until the server is responding (up to 3 minutes)
+4. Open Chromium fullscreen showing the app
 
 SSH still works normally from other computers at all times.
-The app is also accessible from other devices at `http://golfcart.local:3000`.
 
-### Optional — Hide the mouse cursor
+---
 
-    sudo apt-get install -y wlr-randr
-    echo 'seat seat0 hide-cursor when-typing enabled' | sudo tee -a /etc/cage/config
+## PART 7 — Updating the App in the Future
+
+On your **Windows PC** push your changes:
+
+    cd "E:\Golf Cart\Software\Golf-Score-Cart"
+    git add .
+    git commit -m "describe what changed"
+    git push
+
+Then reboot the Pi:
+
+    sudo reboot
+
+The Pi will automatically pull the latest code, rebuild if needed, and start the app.
+
+**To update without rebooting:**
+
+    sudo systemctl restart golf-scorecard
+
+**To watch the update live:**
+
+    journalctl -u golf-scorecard -f
+
+Press Ctrl+C when done.
 
 ---
 
 ## Troubleshooting
 
 ### SSH drops during install
-Use `tmux` before running long commands. If SSH drops, reconnect and run:
+
+Reconnect and run:
 
     tmux attach
 
-### Kiosk screen not showing — how to diagnose
+### Check the kiosk log
 
-Run these on the Pi via SSH. Copy the output and share it to get help.
+If the screen is blank or showing errors run this via SSH:
 
-Check the xsession error log:
+    cat ~/kiosk.log
 
-    cat ~/.xsession-errors
+### Check the app server
 
-Check whether the app server is actually running and responding:
+    sudo systemctl status golf-scorecard
+    journalctl -u golf-scorecard -n 50
+
+### App not loading in browser
 
     curl http://localhost:3000
 
-Check the app service status:
+### Cannot connect to golfcart.local
 
-    sudo systemctl status golf-scorecard
+Find the IP:
 
-View the full contents of the kiosk script to confirm it was updated:
+    hostname -I
 
-    cat ~/Golf-Score-Cart/kiosk.sh
+Then use `http://192.168.x.x:3000` in your browser.
 
 ### "Cannot find module @rollup/rollup-linux-arm64-gnu"
-This means Part 1 was skipped or the lockfile was not pushed.
-Go back to Part 1 and run it on Windows, then pull on the Pi and reinstall.
 
-### "Killed" during install or build (Out of Memory)
-The swap file from Step 7 prevents this. If it still happens:
+Part 1 was skipped or the lockfile was not pushed. Go back to Part 1 on Windows, then on Pi:
+
+    cd ~/Golf-Score-Cart && git pull && pnpm install && pnpm run build:prod
+
+### Out of memory during build
 
     sudo swapon --show
 
 If swap is not listed, re-run Step 7.
 
-### App not loading in browser
-Check the service is running:
+### Re-enable the desktop (if needed for troubleshooting)
 
-    sudo systemctl status golf-scorecard
-
-Check logs for errors:
-
-    journalctl -u golf-scorecard -n 50
-
-### Cannot connect to golfcart.local
-Find the Pi's IP address by typing this on the Pi:
-
-    hostname -I
-
-Then use that IP in the browser: `http://192.168.x.x:3000`
-
-### Port 3000 already in use
+    sudo raspi-config nonint do_boot_behaviour B4
     sudo reboot
 
 ---
 
-## Quick Reference — Commands at a Glance
+## Quick Reference
 
-| What | Command (on Pi) |
-|------|----------------|
+| What | Command (on Pi via SSH) |
+|------|------------------------|
 | Start tmux | `tmux` |
-| Reconnect to tmux after SSH drop | `tmux attach` |
-| Check app service status | `sudo systemctl status golf-scorecard` |
-| Restart app service | `sudo systemctl restart golf-scorecard` |
+| Reconnect to tmux | `tmux attach` |
+| Check app status | `sudo systemctl status golf-scorecard` |
+| Restart app | `sudo systemctl restart golf-scorecard` |
 | View app logs | `journalctl -u golf-scorecard -n 50` |
-| Find Pi's IP address | `hostname -I` |
-| Check available memory | `free -h` |
+| View kiosk log | `cat ~/kiosk.log` |
+| Find Pi IP address | `hostname -I` |
+| Check memory | `free -h` |
+| Enable desktop | `sudo raspi-config nonint do_boot_behaviour B4` |
+| Disable desktop | `sudo raspi-config nonint do_boot_behaviour B2` |
