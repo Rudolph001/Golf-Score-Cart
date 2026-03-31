@@ -221,43 +221,55 @@ Press Ctrl+C when done watching.
 ## PART 7 — Show the App on the Pi's Own Screen (Kiosk Mode)
 
 If the Pi has a screen connected (HDMI or touchscreen), you can make the app open fullscreen automatically on boot.
+The app will be the ONLY thing on screen — no desktop, no taskbar, no icons.
 
-### Step 17 — Make sure the Pi boots to the desktop
+### Step 17 — Pull the latest files from GitHub
 
-    sudo raspi-config nonint do_boot_behaviour B4
+    cd ~/Golf-Score-Cart && git pull
 
-This sets the Pi to boot straight to the desktop and auto-login as the `pi` user.
-Chromium needs a desktop to display on — without this the screen stays at a text console.
+### Step 18 — Disable the old kiosk service (if you ran it before)
 
-### Step 18 — Create the kiosk browser service
+    sudo systemctl disable golf-kiosk
 
-The service file is already in the project folder. Copy it into place with one command:
+If you see `Failed to disable: Unit file golf-kiosk.service does not exist` that is fine, just continue.
 
-    sudo cp ~/Golf-Score-Cart/golf-kiosk.service /etc/systemd/system/
+### Step 19 — Set the Pi to boot to console (no desktop)
 
-### Step 19 — Enable the kiosk service
+    sudo raspi-config nonint do_boot_behaviour B2
 
-    sudo systemctl daemon-reload
-    sudo systemctl enable golf-kiosk
+This makes the Pi boot straight to a text login and auto-login as `pi`.
+No desktop loads — this is intentional. The app will take over the screen instead.
 
-### Step 20 — Reboot
+### Step 20 — Install xorg (the display system Chromium needs)
+
+    sudo apt-get install -y xorg
+
+### Step 21 — Create a minimal display session that runs only the app
+
+    echo 'exec bash /home/pi/Golf-Score-Cart/kiosk.sh' > ~/.xinitrc
+
+### Step 22 — Start the display automatically when the Pi logs in
+
+    echo '[[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && startx -- -nocursor' >> ~/.bash_profile
+
+### Step 23 — Reboot
 
     sudo reboot
 
 On next boot the Pi will:
-1. Auto-login to the desktop
-2. Start the app server in the background
-3. Wait 10 seconds for the server to be ready
-4. Open Chromium fullscreen showing the Golf Scorecard app
+1. Boot to console and auto-login as `pi`
+2. Automatically start the display system (`startx`)
+3. Start the Golf Scorecard app server in the background (via the existing service)
+4. Wait until the server is ready (up to 3 minutes)
+5. Open Chromium fullscreen — the app fills the entire screen with nothing else visible
 
-The app will also still be accessible from other devices at `http://golfcart.local:3000` as before.
+SSH still works normally from other computers at all times.
+The app is also still accessible from other devices at `http://golfcart.local:3000`.
 
 ### Optional — Hide the mouse cursor on touchscreen
 
-If you are using a touchscreen and do not want to see a cursor:
-
     sudo apt-get install -y unclutter
-    echo '@unclutter -idle 0.5 -root' | tee -a ~/.config/lxsession/LXDE-pi/autostart
+    echo 'unclutter -idle 0.5 -root &' >> ~/.xinitrc
 
 ---
 

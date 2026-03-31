@@ -1,13 +1,24 @@
 #!/bin/bash
 # Golf Scorecard — Chromium kiosk launcher for Raspberry Pi
 # Launches fullscreen kiosk browser pointed at the local app.
-# Run AFTER the server is already started (or alongside it via autostart).
 
 PORT="${PORT:-3000}"
 APP_URL="http://localhost:$PORT"
 
-# Give the server a moment to be ready (adjust if needed)
-sleep 5
+# Disable screen blanking and power saving
+xset s off
+xset -dpms
+xset s noblank
+
+# Wait until the app server actually responds (up to 3 minutes)
+echo "Waiting for Golf Scorecard server..."
+for i in $(seq 1 90); do
+  if curl -sf "$APP_URL" > /dev/null 2>&1; then
+    echo "Server is ready."
+    break
+  fi
+  sleep 2
+done
 
 # Remove any leftover Chromium lock files that can block startup after a crash
 rm -f ~/.config/chromium/SingletonLock
