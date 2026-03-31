@@ -36,6 +36,7 @@ echo "$(date): Using browser: $CHROMIUM_BIN" >> "$LOG"
 # --noerrdialogs  : suppresses all error pop-ups
 # --disable-infobars : hides "Chrome is not your default browser" bar
 cage -- "$CHROMIUM_BIN" \
+  --ozone-platform=wayland \
   --kiosk \
   --noerrdialogs \
   --disable-infobars \
