@@ -240,9 +240,13 @@ If you see `Failed to disable: Unit file golf-kiosk.service does not exist` that
 This makes the Pi boot straight to a text login and auto-login as `pi`.
 No desktop loads — this is intentional. The app will take over the screen instead.
 
-### Step 20 — Install xorg (the display system Chromium needs)
+### Step 20 — Install the lightweight browser and window manager
 
-    sudo apt-get install -y xorg
+Chromium is too heavy for Pi devices with less than 1GB of RAM.
+Instead this setup uses `epiphany-browser` (WebKitGTK) — much lighter, no warnings, no dialogs.
+`matchbox-window-manager` forces the browser window to fill the entire screen automatically.
+
+    sudo apt-get install -y epiphany-browser matchbox-window-manager
 
 ### Step 21 — Create a minimal display session that runs only the app
 

@@ -1,6 +1,6 @@
 #!/bin/bash
-# Golf Scorecard — Chromium kiosk launcher for Raspberry Pi
-# Launches fullscreen kiosk browser pointed at the local app.
+# Golf Scorecard — Kiosk launcher for Raspberry Pi
+# Uses epiphany-browser (WebKitGTK) — much lighter than Chromium, no RAM warnings.
 
 PORT="${PORT:-3000}"
 APP_URL="http://localhost:$PORT"
@@ -20,18 +20,14 @@ for i in $(seq 1 90); do
   sleep 2
 done
 
-# Remove any leftover Chromium lock files that can block startup after a crash
-rm -f ~/.config/chromium/SingletonLock
-rm -f ~/.config/chromium/SingletonCookie
-rm -f ~/.config/chromium/SingletonSocket
+# Start matchbox window manager — forces every window fullscreen with no titlebar
+matchbox-window-manager -use_titlebar no &
 
-# Launch Chromium in kiosk mode (command is 'chromium' on Raspberry Pi OS Bookworm)
-chromium \
-  --kiosk \
-  --noerrdialogs \
-  --disable-infobars \
-  --disable-session-crashed-bubble \
-  --disable-features=TranslateUI \
-  --check-for-update-interval=31536000 \
-  --no-first-run \
+# Remove stale profile lock if left over from a crash
+rm -rf /tmp/epiphany-kiosk
+
+# Launch epiphany in application mode (no address bar, no tabs, no browser chrome)
+exec epiphany-browser \
+  --application-mode \
+  --profile=/tmp/epiphany-kiosk \
   "$APP_URL"
