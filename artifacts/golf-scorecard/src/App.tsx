@@ -11,6 +11,7 @@ import ScorecardDetail from "@/pages/ScorecardDetail";
 import CourseLayout from "@/pages/CourseLayout";
 import Players from "@/pages/Players";
 import Sensors from "@/pages/Sensors";
+import Settings from "@/pages/Settings";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/scorecard/:id" component={ScorecardDetail} />
       <Route path="/players" component={Players} />
       <Route path="/sensors" component={Sensors} />
+      <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
   );

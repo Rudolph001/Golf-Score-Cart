@@ -1,5 +1,5 @@
 import { Link, useRoute } from "wouter";
-import { Home, Plus, Users, Map, Cpu } from "lucide-react";
+import { Home, Plus, Users, Map, Cpu, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Navigation() {
@@ -8,6 +8,7 @@ export function Navigation() {
   const [isCourse] = useRoute("/course");
   const [isPlayers] = useRoute("/players");
   const [isSensors] = useRoute("/sensors");
+  const [isSettings] = useRoute("/settings");
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-t border-border pb-safe">
@@ -67,6 +68,17 @@ export function Navigation() {
         >
           <Cpu className="w-8 h-8 mb-1" />
           <span className="text-xs font-semibold uppercase tracking-wider">Sensors</span>
+        </Link>
+
+        <Link
+          href="/settings"
+          className={cn(
+            "flex flex-col items-center p-3 rounded-xl transition-all min-w-[80px]",
+            isSettings ? "text-primary" : "text-muted-foreground hover:text-primary/80 hover:bg-primary/5"
+          )}
+        >
+          <Settings className="w-8 h-8 mb-1" />
+          <span className="text-xs font-semibold uppercase tracking-wider">Settings</span>
         </Link>
       </div>
     </nav>
