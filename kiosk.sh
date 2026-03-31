@@ -25,8 +25,8 @@ rm -f ~/.config/chromium/SingletonLock
 rm -f ~/.config/chromium/SingletonCookie
 rm -f ~/.config/chromium/SingletonSocket
 
-# Launch Chromium in kiosk mode
-chromium-browser \
+# Launch Chromium in kiosk mode (command is 'chromium' on Raspberry Pi OS Bookworm)
+chromium \
   --kiosk \
   --noerrdialogs \
   --disable-infobars \
