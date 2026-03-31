@@ -20,9 +20,10 @@ for i in $(seq 1 90); do
   sleep 2
 done
 
-# Create fresh epiphany profile directory
-rm -rf /tmp/epiphany-kiosk
-mkdir -p /tmp/epiphany-kiosk
+# Create fresh epiphany profile directory (name must start with org.gnome.Epiphany.WebApp_)
+EPIPHANY_PROFILE=/tmp/org.gnome.Epiphany.WebApp_GolfScorecard
+rm -rf "$EPIPHANY_PROFILE"
+mkdir -p "$EPIPHANY_PROFILE"
 
 echo "$(date): Launching cage..." >> "$LOG"
 
@@ -30,7 +31,7 @@ echo "$(date): Launching cage..." >> "$LOG"
 # Note: no 'exec' here so the shell survives if cage crashes (prevents infinite loop)
 cage -- epiphany-browser \
   --application-mode \
-  --profile=/tmp/epiphany-kiosk \
+  --profile="$EPIPHANY_PROFILE" \
   "$APP_URL" >> "$LOG" 2>&1
 
 echo "$(date): cage exited with code $?" >> "$LOG"
