@@ -1,7 +1,6 @@
 #!/bin/bash
 # Golf Scorecard — Kiosk launcher for Raspberry Pi
-# Uses cage (Wayland kiosk compositor) + epiphany-browser
-# cage handles fullscreen — no need for epiphany application-mode
+# Uses cage (Wayland kiosk compositor) + Chromium in kiosk mode
 
 PORT="${PORT:-3000}"
 APP_URL="http://localhost:$PORT"
@@ -20,15 +19,23 @@ for i in $(seq 1 90); do
   sleep 2
 done
 
-echo "$(date): Launching cage..." >> "$LOG"
+echo "$(date): Launching cage + chromium..." >> "$LOG"
 
-# Suppress epiphany's "make default browser" dialog
-gsettings set org.gnome.Epiphany default-browser-notification-shown true 2>/dev/null || true
-
-# cage runs epiphany fullscreen in a minimal Wayland session
-# WLR_RENDERER=pixman forces software rendering (avoids EGL/GL errors on Pi)
-# GTK_A11Y=none suppresses accessibility bus pop-up warnings
-WLR_RENDERER=pixman GTK_A11Y=none cage -- epiphany-browser "$APP_URL" >> "$LOG" 2>&1
+# --kiosk         : true fullscreen, suppresses unresponsive-page dialogs
+# --noerrdialogs  : suppresses all error pop-ups
+# --disable-gpu   : no GPU acceleration needed, avoids driver errors
+# --disable-dev-shm-usage : use less shared memory (helps low-RAM Pi)
+# --disable-infobars : hides "Chrome is not your default browser" bar
+cage -- chromium \
+  --kiosk \
+  --noerrdialogs \
+  --disable-infobars \
+  --disable-session-crashed-bubble \
+  --disable-restore-session-state \
+  --disable-gpu \
+  --disable-dev-shm-usage \
+  --no-first-run \
+  "$APP_URL" >> "$LOG" 2>&1
 
 echo "$(date): cage exited with code $?" >> "$LOG"
 sleep 5
