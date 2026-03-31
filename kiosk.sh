@@ -43,6 +43,8 @@ cage -- "$CHROMIUM_BIN" \
   --disable-restore-session-state \
   --no-first-run \
   --no-default-browser-check \
+  --password-store=basic \
+  --use-mock-keychain \
   "$APP_URL" >> "$LOG" 2>&1
 
 echo "$(date): cage exited with code $?" >> "$LOG"
