@@ -275,6 +275,16 @@ The app is also still accessible from other devices at `http://golfcart.local:30
     sudo apt-get install -y unclutter
     echo 'unclutter -idle 0.5 -root &' >> ~/.xinitrc
 
+### Optional — Custom Golf Scorecard boot splash screen
+
+This replaces the Raspberry Pi logo on boot with a green Golf Scorecard screen.
+Run this once on the Pi:
+
+    bash ~/Golf-Score-Cart/scripts/create-splash.sh
+
+The script installs ImageMagick, draws the splash image, and installs it.
+After the next reboot you will see the Golf Scorecard boot screen instead of the Pi logo.
+
 ---
 
 ## Troubleshooting
