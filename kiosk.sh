@@ -31,6 +31,7 @@ cage -- chromium \
   --disable-session-crashed-bubble \
   --disable-restore-session-state \
   --no-first-run \
+  --no-default-browser-check \
   "$APP_URL" >> "$LOG" 2>&1
 
 echo "$(date): cage exited with code $?" >> "$LOG"
