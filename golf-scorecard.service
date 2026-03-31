@@ -1,20 +1,25 @@
 [Unit]
 Description=Golf Scorecard App
-Documentation=https://github.com/your-org/Golf-Score-Cart
-After=network.target
+Documentation=https://github.com/Rudolph001/Golf-Score-Cart
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
 User=pi
 Group=pi
 
-# Absolute path to the project — adjust if you cloned elsewhere
 WorkingDirectory=/home/pi/Golf-Score-Cart
 
 Environment=NODE_ENV=production
 Environment=PORT=3000
+Environment=PATH=/home/pi/.local/share/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-ExecStart=/usr/bin/node --enable-source-maps /home/pi/Golf-Score-Cart/artifacts/api-server/dist/index.mjs
+# Pull latest code, rebuild if changed, then start the app
+ExecStart=/bin/bash /home/pi/Golf-Score-Cart/update-and-start.sh
+
+# Allow up to 10 minutes for updates and builds on first boot
+TimeoutStartSec=600
 
 # Restart on crash, wait 5 s before retry
 Restart=on-failure
