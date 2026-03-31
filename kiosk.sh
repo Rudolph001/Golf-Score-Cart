@@ -25,6 +25,17 @@ EPIPHANY_PROFILE=/tmp/org.gnome.Epiphany.WebApp_GolfScorecard
 rm -rf "$EPIPHANY_PROFILE"
 mkdir -p "$EPIPHANY_PROFILE"
 
+# Create the .desktop file that epiphany --application-mode requires
+DESKTOP_DIR="$HOME/.local/share/xdg-desktop-portal/applications"
+mkdir -p "$DESKTOP_DIR"
+cat > "$DESKTOP_DIR/org.gnome.Epiphany.WebApp_GolfScorecard.desktop" << EOF
+[Desktop Entry]
+Name=Golf Scorecard
+Exec=epiphany-browser --application-mode --profile=$EPIPHANY_PROFILE $APP_URL
+Icon=org.gnome.Epiphany
+Type=Application
+EOF
+
 echo "$(date): Launching cage..." >> "$LOG"
 
 # cage is a Wayland compositor that runs one app fullscreen — no desktop, no taskbar
