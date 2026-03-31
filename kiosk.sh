@@ -46,6 +46,9 @@ cage -- "$CHROMIUM_BIN" \
   --no-default-browser-check \
   --password-store=basic \
   --use-mock-keychain \
+  --disable-gpu \
+  --disable-gpu-sandbox \
+  --disable-software-rasterizer=false \
   "$APP_URL" >> "$LOG" 2>&1
 
 echo "$(date): cage exited with code $?" >> "$LOG"
