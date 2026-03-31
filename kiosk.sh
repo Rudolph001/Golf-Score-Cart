@@ -21,10 +21,21 @@ done
 
 echo "$(date): Launching cage + chromium..." >> "$LOG"
 
+# Use the real chromium binary directly to bypass the Pi OS RAM-check wrapper
+# The wrapper at /usr/bin/chromium shows a "less than 1GB" dialog we can't dismiss
+CHROMIUM_BIN="/usr/lib/chromium/chromium"
+if [ ! -x "$CHROMIUM_BIN" ]; then
+  CHROMIUM_BIN=$(find /usr/lib/chromium* -maxdepth 1 -type f -name 'chrom*' 2>/dev/null | head -1)
+fi
+if [ ! -x "$CHROMIUM_BIN" ]; then
+  CHROMIUM_BIN="chromium"
+fi
+echo "$(date): Using browser: $CHROMIUM_BIN" >> "$LOG"
+
 # --kiosk         : true fullscreen, suppresses unresponsive-page dialogs
 # --noerrdialogs  : suppresses all error pop-ups
 # --disable-infobars : hides "Chrome is not your default browser" bar
-cage -- chromium \
+cage -- "$CHROMIUM_BIN" \
   --kiosk \
   --noerrdialogs \
   --disable-infobars \
