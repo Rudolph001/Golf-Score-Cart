@@ -294,6 +294,26 @@ Use `tmux` before running long commands. If SSH drops, reconnect and run:
 
     tmux attach
 
+### Kiosk screen not showing — how to diagnose
+
+Run these on the Pi via SSH. Copy the output and share it to get help.
+
+Check the xsession error log:
+
+    cat ~/.xsession-errors
+
+Check whether the app server is actually running and responding:
+
+    curl http://localhost:3000
+
+Check the app service status:
+
+    sudo systemctl status golf-scorecard
+
+View the full contents of the kiosk script to confirm it was updated:
+
+    cat ~/Golf-Score-Cart/kiosk.sh
+
 ### "Cannot find module @rollup/rollup-linux-arm64-gnu"
 This means Part 1 was skipped or the lockfile was not pushed.
 Go back to Part 1 and run it on Windows, then pull on the Pi and reinstall.

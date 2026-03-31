@@ -1,14 +1,10 @@
 #!/bin/bash
 # Golf Scorecard — Kiosk launcher for Raspberry Pi
-# Uses epiphany-browser (WebKitGTK) — much lighter than Chromium, no RAM warnings.
+# Uses cage (Wayland kiosk compositor) + epiphany-browser
+# Works on Raspberry Pi OS Bookworm which uses Wayland (labwc) by default
 
 PORT="${PORT:-3000}"
 APP_URL="http://localhost:$PORT"
-
-# Disable screen blanking and power saving
-xset s off
-xset -dpms
-xset s noblank
 
 # Wait until the app server actually responds (up to 3 minutes)
 echo "Waiting for Golf Scorecard server..."
@@ -20,15 +16,12 @@ for i in $(seq 1 90); do
   sleep 2
 done
 
-# Start matchbox window manager — forces every window fullscreen with no titlebar
-matchbox-window-manager -use_titlebar no &
-
-# Remove stale profile lock if left over from a crash, then recreate the directory
+# Create fresh epiphany profile directory
 rm -rf /tmp/epiphany-kiosk
 mkdir -p /tmp/epiphany-kiosk
 
-# Launch epiphany in application mode (no address bar, no tabs, no browser chrome)
-exec epiphany-browser \
+# cage is a Wayland compositor that runs one app fullscreen — no desktop, no taskbar
+exec cage -- epiphany-browser \
   --application-mode \
   --profile=/tmp/epiphany-kiosk \
   "$APP_URL"
