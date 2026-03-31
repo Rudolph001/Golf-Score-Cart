@@ -23,8 +23,6 @@ echo "$(date): Launching cage + chromium..." >> "$LOG"
 
 # --kiosk         : true fullscreen, suppresses unresponsive-page dialogs
 # --noerrdialogs  : suppresses all error pop-ups
-# --disable-gpu   : no GPU acceleration needed, avoids driver errors
-# --disable-dev-shm-usage : use less shared memory (helps low-RAM Pi)
 # --disable-infobars : hides "Chrome is not your default browser" bar
 cage -- chromium \
   --kiosk \
@@ -32,8 +30,6 @@ cage -- chromium \
   --disable-infobars \
   --disable-session-crashed-bubble \
   --disable-restore-session-state \
-  --disable-gpu \
-  --disable-dev-shm-usage \
   --no-first-run \
   "$APP_URL" >> "$LOG" 2>&1
 
