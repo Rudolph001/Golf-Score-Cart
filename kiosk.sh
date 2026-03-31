@@ -24,7 +24,8 @@ echo "$(date): Launching cage..." >> "$LOG"
 
 # cage runs epiphany fullscreen in a minimal Wayland session
 # WLR_RENDERER=pixman forces software rendering (avoids EGL/GL errors on Pi)
-WLR_RENDERER=pixman cage -- epiphany-browser "$APP_URL" >> "$LOG" 2>&1
+# GTK_A11Y=none suppresses accessibility bus pop-up warnings
+WLR_RENDERER=pixman GTK_A11Y=none cage -- epiphany-browser "$APP_URL" >> "$LOG" 2>&1
 
 echo "$(date): cage exited with code $?" >> "$LOG"
 sleep 5
