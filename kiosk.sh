@@ -22,6 +22,9 @@ done
 
 echo "$(date): Launching cage..." >> "$LOG"
 
+# Suppress epiphany's "make default browser" dialog
+gsettings set org.gnome.Epiphany default-browser-notification-shown true 2>/dev/null || true
+
 # cage runs epiphany fullscreen in a minimal Wayland session
 # WLR_RENDERER=pixman forces software rendering (avoids EGL/GL errors on Pi)
 # GTK_A11Y=none suppresses accessibility bus pop-up warnings
