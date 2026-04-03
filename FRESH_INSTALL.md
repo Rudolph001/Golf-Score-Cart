@@ -231,7 +231,178 @@ SSH still works normally from other computers at all times.
 
 ---
 
-## PART 7 — Updating the App in the Future
+## PART 7 — Enable HTTPS for GPS on Your Phone
+
+Android Chrome blocks the GPS / Geolocation API on plain HTTP pages.
+To use shot distance measurement and club recommendations on your phone you must enable HTTPS.
+This is a one-time setup. After accepting the certificate warning once on your phone, GPS works permanently.
+
+### Step 23 — Generate a self-signed certificate on the Pi
+
+    mkdir -p ~/ssl
+    openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+      -subj "/CN=golfcart.local" \
+      -addext "subjectAltName=DNS:golfcart.local,DNS:localhost" \
+      -keyout ~/ssl/golfcart.key \
+      -out ~/ssl/golfcart.crt
+
+### Step 24 — Enable HTTPS in the service
+
+Open the service file:
+
+    sudo nano /etc/systemd/system/golf-scorecard.service
+
+Find these three commented-out lines:
+
+    #Environment=SSL_CERT=/home/pi/ssl/golfcart.crt
+    #Environment=SSL_KEY=/home/pi/ssl/golfcart.key
+    #Environment=HTTPS_PORT=3443
+
+Remove the `#` from the start of each line so they read:
+
+    Environment=SSL_CERT=/home/pi/ssl/golfcart.crt
+    Environment=SSL_KEY=/home/pi/ssl/golfcart.key
+    Environment=HTTPS_PORT=3443
+
+Press **Ctrl+O** to save, **Ctrl+X** to exit.
+
+### Step 25 — Reload and restart the service
+
+    sudo systemctl daemon-reload
+    sudo systemctl restart golf-scorecard
+
+### Step 26 — Open the app on your phone using HTTPS
+
+On your phone open a browser and go to:
+
+    https://golfcart.local:3443
+
+Android Chrome will show a security warning ("Your connection is not private").
+Tap **Advanced** → **Proceed to golfcart.local (unsafe)**.
+
+After that, tap **Enable GPS** in the app and allow location when the browser asks. GPS and shot distance will now work.
+
+> **Note:** You only need to accept the warning once per phone. After that, `https://golfcart.local:3443` loads normally with GPS working. The app also still works at `http://golfcart.local:3000` (without GPS) for devices not needing it.
+
+---
+
+## PART 8 — Remote Access From Anywhere (Optional)
+
+Tailscale lets you access the Golf Scorecard app from your phone on any network — mobile data, different Wi-Fi, anywhere in the world. It is free for personal use and requires no router configuration.
+
+### Step 27 — Create a Tailscale account
+
+Go to https://tailscale.com and sign up with Google or GitHub. Remember which account you use.
+
+### Step 28 — Install Tailscale on the Pi
+
+    curl -fsSL https://tailscale.com/install.sh | sh
+
+### Step 29 — Connect the Pi to Tailscale
+
+    sudo tailscale up
+
+It will print a URL like:
+
+    https://login.tailscale.com/a/xxxxx
+
+Open that URL in a browser on your phone or PC and log in with the same account from Step 27.
+
+### Step 30 — Make Tailscale start automatically on boot
+
+    sudo systemctl enable --now tailscaled
+
+### Step 31 — Find the Pi's Tailscale IP address
+
+    tailscale status
+
+You will see output like:
+
+    100.x.x.x   golfcart   pi@ linux   -
+
+Write down the IP that starts with `100.` — that is your Pi's permanent Tailscale address.
+
+### Step 32 — Install Tailscale on your phone
+
+**iPhone:** Search "Tailscale" in the App Store and install it.
+
+**Android:** Search "Tailscale" in the Play Store and install it.
+
+1. Open the Tailscale app
+2. Tap **Sign in** and use the same account from Step 27
+3. Tap the toggle to turn Tailscale on
+4. You will see `golfcart` appear in the device list — that is your Pi
+
+### Step 33 — Access the app from anywhere (Tailscale)
+
+With Tailscale running on your phone, open any browser and go to:
+
+    https://golfcart.local:3443
+
+Or if using a Tailscale IP:
+
+    http://100.x.x.x:3000
+
+Replace `100.x.x.x` with the IP you wrote down in Step 31.
+
+> **GPS over Tailscale:** If you set up HTTPS in Part 7, GPS also works over Tailscale — use `https://golfcart.local:3443` instead of `http://100.x.x.x:3000`.
+
+This works on mobile data, on a different Wi-Fi network, or anywhere in the world.
+
+---
+
+## PART 9 — SSH Into the Pi (Remote Terminal Access)
+
+SSH lets you control the Pi via a terminal from any other device. You need this to run commands, check logs, and update the app.
+
+### From your Windows PC (on the same Wi-Fi)
+
+Open Command Prompt and type:
+
+    ssh pi@golfcart.local
+
+If that does not work, use the Pi's IP address instead:
+
+    ssh pi@192.168.x.x
+
+Find the IP by running this on the Pi's screen or another SSH session:
+
+    hostname -I
+
+### From your Windows PC (from anywhere via Tailscale)
+
+With Tailscale running on both your PC and the Pi, open Command Prompt and type:
+
+    ssh pi@100.x.x.x
+
+Replace `100.x.x.x` with the Pi's Tailscale IP from Step 31.
+
+### From your phone (on the same Wi-Fi or via Tailscale)
+
+Install an SSH app on your phone:
+
+- **iPhone:** Download **Terminus** or **Prompt 3** from the App Store
+- **Android:** Download **JuiceSSH** or **Termius** from the Play Store
+
+Connect using these settings:
+
+    Host:     golfcart.local   (or the Pi's IP or Tailscale IP)
+    Port:     22
+    Username: pi
+    Password: your Pi password
+
+### SSH password-free login (optional, more convenient)
+
+On your Windows PC, run once to set up a key so you never need to type a password:
+
+    ssh-keygen -t ed25519
+    type %USERPROFILE%\.ssh\id_ed25519.pub | ssh pi@golfcart.local "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+
+After this, `ssh pi@golfcart.local` logs in automatically with no password.
+
+---
+
+
 
 On your **Windows PC** push your changes:
 
@@ -322,3 +493,9 @@ If swap is not listed, re-run Step 7.
 | Check memory | `free -h` |
 | Enable desktop | `sudo raspi-config nonint do_boot_behaviour B4` |
 | Disable desktop | `sudo raspi-config nonint do_boot_behaviour B2` |
+| Check Tailscale IP | `tailscale status` |
+| Reconnect Tailscale | `sudo tailscale up` |
+| App URL (HTTP, all devices) | `http://golfcart.local:3000` |
+| App URL (HTTPS, GPS enabled) | `https://golfcart.local:3443` |
+| SSH from Windows (local) | `ssh pi@golfcart.local` |
+| SSH from Windows (Tailscale) | `ssh pi@100.x.x.x` |

@@ -14,6 +14,13 @@ WorkingDirectory=/home/pi/Golf-Score-Cart
 Environment=NODE_ENV=production
 Environment=PORT=3000
 Environment=PATH=/home/pi/.local/share/pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# Optional HTTPS for GPS support on Android Chrome (geolocation requires a secure origin).
+# Generate certs with: openssl req -x509 -newkey rsa:2048 -nodes -days 3650
+#   -subj "/CN=golfcart.local" -keyout /home/pi/ssl/golfcart.key -out /home/pi/ssl/golfcart.crt
+# Then uncomment the three lines below:
+#Environment=SSL_CERT=/home/pi/ssl/golfcart.crt
+#Environment=SSL_KEY=/home/pi/ssl/golfcart.key
+#Environment=HTTPS_PORT=3443
 
 # Pull latest code, rebuild if changed, then start the app
 ExecStart=/bin/bash /home/pi/Golf-Score-Cart/update-and-start.sh
