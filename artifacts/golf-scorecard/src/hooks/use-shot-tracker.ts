@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { generateId } from "@/lib/utils";
 
 /** Haversine great-circle distance in metres (rounded to nearest metre). */
 function haversineMetres(
@@ -100,7 +101,7 @@ export function useShotTracker(holeNumber: number) {
         return [
           ...prev,
           {
-            id: crypto.randomUUID(),
+            id: generateId(),
             playerName,
             clubCode,
             position,

@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect, useCallback } from "react";
+import { generateId } from "@/lib/utils";
 import {
   useListScorecards,
   useGetScorecard,
@@ -139,7 +140,7 @@ export function usePlayers() {
     setPlayers(prev => {
       // Prevent duplicate names (case-insensitive)
       if (prev.some(p => p.name.toLowerCase() === trimmed.toLowerCase())) return prev;
-      const next = [...prev, { id: crypto.randomUUID(), name: trimmed, handicap }];
+      const next = [...prev, { id: generateId(), name: trimmed, handicap }];
       storePlayers(next);
       return next;
     });
