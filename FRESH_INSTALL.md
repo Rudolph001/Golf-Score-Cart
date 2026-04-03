@@ -237,7 +237,15 @@ Android Chrome blocks the GPS / Geolocation API on plain HTTP pages.
 To use shot distance measurement and club recommendations on your phone you must enable HTTPS.
 This is a one-time setup. After accepting the certificate warning once on your phone, GPS works permanently.
 
-### Step 23 — Generate a self-signed certificate on the Pi
+### Step 23 — Pull the latest code and rebuild
+
+    cd ~/Golf-Score-Cart && git pull && pnpm run build:prod
+
+Then update the installed service file:
+
+    sudo cp ~/Golf-Score-Cart/golf-scorecard.service /etc/systemd/system/
+
+### Step 24 — Generate a self-signed certificate on the Pi
 
     mkdir -p ~/ssl
     openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
@@ -246,32 +254,22 @@ This is a one-time setup. After accepting the certificate warning once on your p
       -keyout ~/ssl/golfcart.key \
       -out ~/ssl/golfcart.crt
 
-### Step 24 — Enable HTTPS in the service
+### Step 25 — Enable HTTPS in the service
 
-Open the service file:
+    sudo sed -i 's/#Environment=SSL_CERT/Environment=SSL_CERT/; s/#Environment=SSL_KEY/Environment=SSL_KEY/; s/#Environment=HTTPS_PORT/Environment=HTTPS_PORT/' /etc/systemd/system/golf-scorecard.service
 
-    sudo nano /etc/systemd/system/golf-scorecard.service
-
-Find these three commented-out lines:
-
-    #Environment=SSL_CERT=/home/pi/ssl/golfcart.crt
-    #Environment=SSL_KEY=/home/pi/ssl/golfcart.key
-    #Environment=HTTPS_PORT=3443
-
-Remove the `#` from the start of each line so they read:
-
-    Environment=SSL_CERT=/home/pi/ssl/golfcart.crt
-    Environment=SSL_KEY=/home/pi/ssl/golfcart.key
-    Environment=HTTPS_PORT=3443
-
-Press **Ctrl+O** to save, **Ctrl+X** to exit.
-
-### Step 25 — Reload and restart the service
+### Step 26 — Reload and restart the service
 
     sudo systemctl daemon-reload
     sudo systemctl restart golf-scorecard
 
-### Step 26 — Open the app on your phone using HTTPS
+### Step 27 — Confirm HTTPS is working
+
+    curl -k https://localhost:3443/api/health
+
+You should see a response like `{"status":"ok"}`. If you do, HTTPS is running.
+
+### Step 28 — Open the app on your phone using HTTPS
 
 On your phone open a browser and go to:
 
@@ -290,15 +288,15 @@ After that, tap **Enable GPS** in the app and allow location when the browser as
 
 Tailscale lets you access the Golf Scorecard app from your phone on any network — mobile data, different Wi-Fi, anywhere in the world. It is free for personal use and requires no router configuration.
 
-### Step 27 — Create a Tailscale account
+### Step 29 — Create a Tailscale account
 
 Go to https://tailscale.com and sign up with Google or GitHub. Remember which account you use.
 
-### Step 28 — Install Tailscale on the Pi
+### Step 30 — Install Tailscale on the Pi
 
     curl -fsSL https://tailscale.com/install.sh | sh
 
-### Step 29 — Connect the Pi to Tailscale
+### Step 31 — Connect the Pi to Tailscale
 
     sudo tailscale up
 
@@ -306,13 +304,13 @@ It will print a URL like:
 
     https://login.tailscale.com/a/xxxxx
 
-Open that URL in a browser on your phone or PC and log in with the same account from Step 27.
+Open that URL in a browser on your phone or PC and log in with the same account from Step 29.
 
-### Step 30 — Make Tailscale start automatically on boot
+### Step 32 — Make Tailscale start automatically on boot
 
     sudo systemctl enable --now tailscaled
 
-### Step 31 — Find the Pi's Tailscale IP address
+### Step 33 — Find the Pi’s Tailscale IP address
 
     tailscale status
 
@@ -322,18 +320,18 @@ You will see output like:
 
 Write down the IP that starts with `100.` — that is your Pi's permanent Tailscale address.
 
-### Step 32 — Install Tailscale on your phone
+### Step 34 — Install Tailscale on your phone
 
 **iPhone:** Search "Tailscale" in the App Store and install it.
 
 **Android:** Search "Tailscale" in the Play Store and install it.
 
 1. Open the Tailscale app
-2. Tap **Sign in** and use the same account from Step 27
+2. Tap **Sign in** and use the same account from Step 29
 3. Tap the toggle to turn Tailscale on
 4. You will see `golfcart` appear in the device list — that is your Pi
 
-### Step 33 — Access the app from anywhere (Tailscale)
+### Step 35 — Access the app from anywhere (Tailscale)
 
 With Tailscale running on your phone, open any browser and go to:
 
@@ -343,7 +341,7 @@ Or if using a Tailscale IP:
 
     http://100.x.x.x:3000
 
-Replace `100.x.x.x` with the IP you wrote down in Step 31.
+Replace `100.x.x.x` with the IP you wrote down in Step 33.
 
 > **GPS over Tailscale:** If you set up HTTPS in Part 7, GPS also works over Tailscale — use `https://golfcart.local:3443` instead of `http://100.x.x.x:3000`.
 
@@ -375,7 +373,7 @@ With Tailscale running on both your PC and the Pi, open Command Prompt and type:
 
     ssh pi@100.x.x.x
 
-Replace `100.x.x.x` with the Pi's Tailscale IP from Step 31.
+Replace `100.x.x.x` with the Pi's Tailscale IP from Step 33.
 
 ### From your phone (on the same Wi-Fi or via Tailscale)
 
