@@ -347,42 +347,72 @@ Replace `100.x.x.x` with the IP you wrote down in Step 33.
 
 This works on mobile data, on a different Wi-Fi network, or anywhere in the world.
 
-### Step 36 — Enable GPS over Tailscale (trusted HTTPS certificate)
+### Step 36 — Enable GPS over Tailscale
 
-Tailscale can issue a proper Let's Encrypt certificate for your Pi. Chrome trusts it automatically — no security warnings, GPS works everywhere on Tailscale.
+There are two ways to do this. **Option A** (Tailscale certificate) is the cleanest. **Option B** (Chrome flag) is quicker if Option A fails.
 
-**Enable HTTPS certificates in your Tailscale account:**
+---
+
+#### Option A — Tailscale trusted certificate
+
+Tailscale can issue a proper Let's Encrypt certificate for your Pi using your free account. Chrome trusts it automatically — no warnings, GPS works everywhere on Tailscale.
+
+**First — enable HTTPS certificates in your Tailscale admin panel.**
+You must do this step on your phone or PC before running anything on the Pi.
+If you skip this the Pi command will fail with "account does not support getting TLS certs".
 
 1. Go to https://login.tailscale.com/admin/dns
-2. Under **MagicDNS**, turn it on if it is not already on
-3. Under **HTTPS Certificates**, click **Enable**
+2. Under **MagicDNS**, click **Enable** if it is not already on
+3. Scroll down to **HTTPS Certificates** and click **Enable**
 
 **Find your full Tailscale hostname on the Pi:**
 
     tailscale status
 
-The Pi's hostname will look like `golfcart.tail1234abc.ts.net`. Write it down — you will use it in the next command and as your app URL.
+The Pi's hostname will look like `golfcart.tail1234abc.ts.net`. Write it down.
 
-**Replace the self-signed certificate with a Tailscale-issued one:**
+**Issue the certificate on the Pi:**
 
     sudo tailscale cert \
       --cert-file /home/pi/ssl/golfcart.crt \
       --key-file /home/pi/ssl/golfcart.key \
       golfcart.TAILNET.ts.net
 
-Replace `golfcart.TAILNET.ts.net` with the full hostname you wrote down.
+Replace `golfcart.TAILNET.ts.net` with the full hostname from `tailscale status`.
 
-**Restart the service to load the new certificate:**
+**Restart the service:**
 
     sudo systemctl restart golf-scorecard
 
-**Open the app on your phone with GPS working:**
+**Open the app on your phone:**
 
     https://golfcart.TAILNET.ts.net:3443
 
-Replace `golfcart.TAILNET.ts.net` with your full Tailscale hostname. No security warning will appear and GPS is enabled immediately.
+No security warning will appear and GPS is immediately available.
 
-> **Certificate renewal:** Tailscale certificates expire every 90 days. When they do, re-run the `tailscale cert` command above and restart the service. The URL stays exactly the same.
+> **Certificate renewal:** Tailscale certificates expire every 90 days. Re-run the `tailscale cert` command and restart the service when that happens.
+
+---
+
+#### Option B — Chrome flag (no certificates needed)
+
+This tells Chrome on your phone to allow GPS on a specific HTTP address. Nothing is installed — it is just a browser setting.
+
+1. On your phone open Chrome and go to:
+
+       chrome://flags/#unsafely-treat-insecure-origin-as-secure
+
+2. Paste your Tailscale URL into the box (use HTTP, port 3000):
+
+       http://100.x.x.x:3000
+
+   Replace `100.x.x.x` with the Pi's Tailscale IP from Step 33.
+
+3. Set the dropdown next to it to **Enabled**
+4. Tap **Relaunch** at the bottom
+5. Open `http://100.x.x.x:3000` in Chrome — GPS will now work on that address
+
+> This setting persists across Chrome restarts. You only need to do it once per phone.
 
 ---
 
