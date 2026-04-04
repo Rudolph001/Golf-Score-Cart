@@ -1,40 +1,44 @@
 import type { Hole } from "@workspace/api-client-react";
 
 // 9 physical hole pin positions — shared by front 9 (holes 1-9) and back 9 (holes 10-18)
+// Positions verified against OpenStreetMap relation 19989284 (Shelley Point Golf Club)
+// course centre ≈ -32.7108, 17.9699  |  bounds approx lat[-32.7147,-32.7097] lon[17.9663,17.9707]
+// NOTE: pin/tee positions within the bounds are best-effort estimates.
+// Walk to each tee/green and tap "Set Tee Here" / "Set Pin Here" in the app to calibrate.
 const PINS = [
-  { lat: -32.7390, lng: 17.9735 }, // Physical hole 1
-  { lat: -32.7370, lng: 17.9762 }, // Physical hole 2
-  { lat: -32.7385, lng: 17.9790 }, // Physical hole 3
-  { lat: -32.7408, lng: 17.9808 }, // Physical hole 4
-  { lat: -32.7438, lng: 17.9818 }, // Physical hole 5 (harbour view)
-  { lat: -32.7468, lng: 17.9798 }, // Physical hole 6
-  { lat: -32.7472, lng: 17.9770 }, // Physical hole 7
-  { lat: -32.7460, lng: 17.9742 }, // Physical hole 8
-  { lat: -32.7442, lng: 17.9748 }, // Physical hole 9 (near clubhouse)
+  { lat: -32.7100, lng: 17.9703 }, // Physical hole 1 - Lighthouse (north end)
+  { lat: -32.7105, lng: 17.9673 }, // Physical hole 2 - Pelican
+  { lat: -32.7116, lng: 17.9665 }, // Physical hole 3 - Lagoon (west)
+  { lat: -32.7128, lng: 17.9665 }, // Physical hole 4 - Atlantic (SW, pond carry)
+  { lat: -32.7120, lng: 17.9703 }, // Physical hole 5 - Harbour View (east)
+  { lat: -32.7131, lng: 17.9695 }, // Physical hole 6 - The Long One
+  { lat: -32.7138, lng: 17.9684 }, // Physical hole 7 - Bay View
+  { lat: -32.7143, lng: 17.9674 }, // Physical hole 8 - Golden Mile (south, road)
+  { lat: -32.7145, lng: 17.9683 }, // Physical hole 9 - Homeward (near clubhouse)
 ];
 
 const TEES_FRONT = [
-  { lat: -32.7430, lng: 17.9760 },
-  { lat: -32.7392, lng: 17.9738 },
-  { lat: -32.7372, lng: 17.9764 },
-  { lat: -32.7387, lng: 17.9793 },
-  { lat: -32.7410, lng: 17.9810 },
-  { lat: -32.7440, lng: 17.9820 },
-  { lat: -32.7470, lng: 17.9800 },
-  { lat: -32.7474, lng: 17.9773 },
-  { lat: -32.7462, lng: 17.9745 },
+  { lat: -32.7143, lng: 17.9686 }, // Hole 1 tee (near clubhouse, Par 5 going north)
+  { lat: -32.7102, lng: 17.9702 }, // Hole 2 tee (near hole 1 green)
+  { lat: -32.7107, lng: 17.9672 }, // Hole 3 tee (near hole 2 green)
+  { lat: -32.7117, lng: 17.9664 }, // Hole 4 tee (near hole 3 green)
+  { lat: -32.7128, lng: 17.9667 }, // Hole 5 tee (Par 3 east, near hole 4 green)
+  { lat: -32.7121, lng: 17.9702 }, // Hole 6 tee (near hole 5 green)
+  { lat: -32.7132, lng: 17.9695 }, // Hole 7 tee (near hole 6 green)
+  { lat: -32.7139, lng: 17.9685 }, // Hole 8 tee (near hole 7 green)
+  { lat: -32.7144, lng: 17.9677 }, // Hole 9 tee (near hole 8 green)
 ];
 
 const TEES_BACK = [
-  { lat: -32.7432, lng: 17.9758 },
-  { lat: -32.7394, lng: 17.9736 },
-  { lat: -32.7374, lng: 17.9762 },
-  { lat: -32.7389, lng: 17.9791 },
-  { lat: -32.7412, lng: 17.9808 },
-  { lat: -32.7442, lng: 17.9818 },
-  { lat: -32.7472, lng: 17.9798 },
-  { lat: -32.7476, lng: 17.9771 },
-  { lat: -32.7464, lng: 17.9743 },
+  { lat: -32.7141, lng: 17.9684 }, // Hole 10 tee
+  { lat: -32.7100, lng: 17.9700 }, // Hole 11 tee
+  { lat: -32.7105, lng: 17.9670 }, // Hole 12 tee
+  { lat: -32.7115, lng: 17.9663 }, // Hole 13 tee
+  { lat: -32.7126, lng: 17.9666 }, // Hole 14 tee
+  { lat: -32.7119, lng: 17.9701 }, // Hole 15 tee
+  { lat: -32.7130, lng: 17.9694 }, // Hole 16 tee
+  { lat: -32.7137, lng: 17.9684 }, // Hole 17 tee
+  { lat: -32.7142, lng: 17.9675 }, // Hole 18 tee
 ];
 
 // Official 2025/26 Scorecard — Shelley Point Country Club

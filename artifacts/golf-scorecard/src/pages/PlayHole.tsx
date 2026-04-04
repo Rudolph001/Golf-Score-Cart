@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useScorecard, useCourseHoles, useUpdateRoundScores } from "@/hooks/use-golf";
 import { useGpsDistance } from "@/hooks/use-gps";
+import { useCourseCoords } from "@/hooks/use-course-coords";
 import { HoleMap } from "@/components/HoleMap";
 import { ScoreBadge } from "@/components/ScoreBadge";
 import { calculateNetScore, getStrokesReceived, getScoreClass, formatToPar, stablefordPoints, getStablefordClass, matchPlayResult, runningMatchScore, formatMatchScore, FORMAT_LABELS } from "@/lib/score-utils";
@@ -73,10 +74,15 @@ export default function PlayHole() {
 
   const hole = holes?.find(h => h.number === currentHoleNum);
 
-  const gps = useGpsDistance(
-    hole?.pinLat ?? -32.7430,
-    hole?.pinLng ?? 17.9760
-  );
+  // Coordinates: use localStorage-saved values when available, fall back to API data
+  const coords = useCourseCoords(currentHoleNum, {
+    pinLat: hole?.pinLat ?? -32.7145,
+    pinLng: hole?.pinLng ?? 17.9683,
+    teeLat: hole?.teeLat ?? -32.7143,
+    teeLng: hole?.teeLng ?? 17.9686,
+  });
+
+  const gps = useGpsDistance(coords.pinLat, coords.pinLng);
 
   // Shot tracker and NFC — hooks must be called unconditionally before any early return
   const shotTracker = useShotTracker(currentHoleNum);
@@ -443,16 +449,60 @@ export default function PlayHole() {
               />
             )}
             {activeTab === "map" && (
-              <div className="h-[420px] mt-2 rounded-2xl overflow-hidden shadow-md border border-border">
-                <HoleMap
-                  pinLat={hole.pinLat}
-                  pinLng={hole.pinLng}
-                  teeLat={hole.teeLat}
-                  teeLng={hole.teeLng}
-                  userLat={gps.position?.latitude}
-                  userLng={gps.position?.longitude}
-                  ballMarks={ballMarks}
-                />
+              <div className="mt-2 space-y-2">
+                <div className="h-[420px] rounded-2xl overflow-hidden shadow-md border border-border">
+                  <HoleMap
+                    pinLat={coords.pinLat}
+                    pinLng={coords.pinLng}
+                    teeLat={coords.teeLat}
+                    teeLng={coords.teeLng}
+                    userLat={gps.position?.lat}
+                    userLng={gps.position?.lng}
+                    ballMarks={ballMarks}
+                  />
+                </div>
+                {/* Course calibration — walk to tee/pin and tap to save */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => gps.position && coords.setTeeHere(gps.position.lat, gps.position.lng)}
+                    disabled={!gps.position}
+                    className={cn(
+                      "flex-1 py-2 px-3 rounded-xl border-2 text-sm font-semibold transition-colors",
+                      coords.hasCustomTee
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                        : "border-border bg-white text-muted-foreground",
+                      !gps.position && "opacity-40 cursor-not-allowed"
+                    )}
+                  >
+                    {coords.hasCustomTee ? "✓ Tee saved" : "Set Tee Here"}
+                  </button>
+                  <button
+                    onClick={() => gps.position && coords.setPinHere(gps.position.lat, gps.position.lng)}
+                    disabled={!gps.position}
+                    className={cn(
+                      "flex-1 py-2 px-3 rounded-xl border-2 text-sm font-semibold transition-colors",
+                      coords.hasCustomPin
+                        ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                        : "border-border bg-white text-muted-foreground",
+                      !gps.position && "opacity-40 cursor-not-allowed"
+                    )}
+                  >
+                    {coords.hasCustomPin ? "✓ Pin saved" : "Set Pin Here"}
+                  </button>
+                  {(coords.hasCustomTee || coords.hasCustomPin) && (
+                    <button
+                      onClick={coords.clearHole}
+                      className="py-2 px-3 rounded-xl border-2 border-red-200 bg-red-50 text-red-600 text-sm font-semibold transition-colors"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+                {!gps.position && (
+                  <p className="text-xs text-center text-muted-foreground">
+                    Enable GPS to calibrate tee &amp; pin positions
+                  </p>
+                )}
               </div>
             )}
             {activeTab === "track" && (
