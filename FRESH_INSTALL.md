@@ -380,6 +380,10 @@ The Pi's hostname will look like `golfcart.tail1234abc.ts.net`. Write it down.
 
 Replace `golfcart.TAILNET.ts.net` with the full hostname from `tailscale status`.
 
+**Fix file permissions** (the service runs as `pi` but `sudo tailscale cert` creates root-owned files):
+
+    sudo chown pi:pi /home/pi/ssl/golfcart.crt /home/pi/ssl/golfcart.key
+
 **Restart the service:**
 
     sudo systemctl restart golf-scorecard
