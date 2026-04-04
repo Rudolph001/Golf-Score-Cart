@@ -51,6 +51,9 @@ export default function PlayHole() {
   const id = parseInt(params?.id || "0");
   const currentHoleNum = parseInt(params?.holeNumber || "1");
 
+  // Read tee colour saved when the round was created
+  const teeColor = (localStorage.getItem(`teeColor_${id}`) ?? 'yellow') as 'yellow' | 'blue';
+
   const { data: scorecard, isLoading: loadingCard } = useScorecard(id);
   const { data: holes, isLoading: loadingHoles } = useCourseHoles();
   const updateScores = useUpdateRoundScores();
@@ -339,8 +342,15 @@ export default function PlayHole() {
             </div>
             <div className="text-center px-2 py-1">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Metres</p>
-              <p className="text-4xl font-display font-bold text-primary">{hole.distanceMen}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Yellow Tee</p>
+              <p className="text-4xl font-display font-bold text-primary">
+                {teeColor === 'blue' ? hole.distanceLadies : hole.distanceMen}
+              </p>
+              <p className={cn(
+                "text-[10px] font-bold mt-0.5",
+                teeColor === 'yellow' ? "text-yellow-500" : "text-blue-500"
+              )}>
+                {teeColor === 'yellow' ? 'Yellow Tee' : 'Blue Tee'}
+              </p>
             </div>
             <div className="text-center px-2 py-1">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Index</p>
@@ -459,6 +469,7 @@ export default function PlayHole() {
                     userLat={gps.position?.lat}
                     userLng={gps.position?.lng}
                     ballMarks={ballMarks}
+                    teeColor={teeColor}
                   />
                 </div>
                 {/* Course calibration — walk to tee/pin and tap to save */}

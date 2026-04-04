@@ -19,6 +19,7 @@ interface HoleMapProps {
   userLng?: number | null;
   ballMarks?: BallMark[];
   playerColors?: string[];
+  teeColor?: 'yellow' | 'blue';
 }
 
 const PLAYER_COLORS = ["#2563eb", "#dc2626", "#d97706", "#16a34a"];
@@ -29,6 +30,7 @@ export function HoleMap({
   userLat, userLng,
   ballMarks = [],
   playerColors = PLAYER_COLORS,
+  teeColor = 'yellow',
 }: HoleMapProps) {
   const mapRef = useRef<LeafletMap | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -66,16 +68,18 @@ export function HoleMap({
         { maxZoom: 19, attribution: "© Esri" }
       ).addTo(map);
 
-      // Tee marker (white flag)
+      // Tee marker — yellow or blue depending on selected tees
+      const teeBg = teeColor === 'yellow' ? '#eab308' : '#3b82f6';
+      const teeLabel = teeColor === 'yellow' ? 'Yellow Tees' : 'Blue Tees';
       const teeIcon = L.divIcon({
-        html: `<div style="width:20px;height:20px;background:#fff;border:3px solid #166534;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 6px rgba(0,0,0,.4);font-weight:bold;color:#166534">T</div>`,
+        html: `<div style="width:20px;height:20px;background:${teeBg};border:3px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 2px 6px rgba(0,0,0,.5);font-weight:bold;color:#fff">T</div>`,
         className: "",
         iconSize: [20, 20],
         iconAnchor: [10, 10],
       });
       L.marker([teeLat, teeLng], { icon: teeIcon })
         .addTo(map)
-        .bindPopup("🟩 Tee Box");
+        .bindPopup(`⛳ ${teeLabel}`);
 
       // Tee-to-pin dotted line
       L.polyline([[teeLat, teeLng], [pinLat, pinLng]], {
@@ -157,7 +161,7 @@ export function HoleMap({
         mapRef.current = null;
       }
     };
-  }, [pinLat, pinLng, teeLat, teeLng, userLat, userLng, ballMarks.length]);
+  }, [pinLat, pinLng, teeLat, teeLng, userLat, userLng, ballMarks.length, teeColor]);
 
   return (
     <div ref={containerRef} className="w-full h-full rounded-2xl overflow-hidden" />

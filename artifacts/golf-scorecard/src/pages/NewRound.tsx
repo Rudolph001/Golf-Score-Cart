@@ -35,6 +35,7 @@ export default function NewRound() {
   
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [gameFormat, setGameFormat] = useState<GameFormat>("stroke");
+  const [teeColor, setTeeColor] = useState<'yellow' | 'blue'>('yellow');
   // Selected player IDs (from roster) or custom entries
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   // Custom players not in roster (manual entry fallback)
@@ -80,7 +81,10 @@ export default function NewRound() {
 
     createRound.mutate(
       { data: { date: new Date(date).toISOString(), gameFormat, players: allPlayers } },
-      { onSuccess: (data) => setLocation(`/round/${data.id}/hole/1`) }
+      { onSuccess: (data) => {
+        localStorage.setItem(`teeColor_${data.id}`, teeColor);
+        setLocation(`/round/${data.id}/hole/1`);
+      }}
     );
   };
 
@@ -114,6 +118,45 @@ export default function NewRound() {
             onChange={(e) => setDate(e.target.value)}
             className="w-full px-4 py-4 rounded-xl bg-white border-2 border-border text-foreground font-medium focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
           />
+        </div>
+
+        {/* Tee Colour */}
+        <div className="glass-card p-5 rounded-2xl">
+          <label className="block text-sm font-bold text-foreground mb-3 font-display">Playing Tees</label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setTeeColor('yellow')}
+              className={cn(
+                "flex items-center gap-3 px-4 py-4 rounded-2xl border-2 transition-all",
+                teeColor === 'yellow'
+                  ? "border-yellow-400 bg-yellow-50 text-yellow-700 shadow-md"
+                  : "border-border bg-white text-muted-foreground hover:border-yellow-300"
+              )}
+            >
+              <div className="w-9 h-9 rounded-full bg-yellow-400 flex items-center justify-center font-bold text-white text-sm shrink-0">T</div>
+              <div className="text-left">
+                <p className="font-bold text-sm">Yellow Tees</p>
+                <p className="text-[11px] text-muted-foreground">Men / Club tees</p>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTeeColor('blue')}
+              className={cn(
+                "flex items-center gap-3 px-4 py-4 rounded-2xl border-2 transition-all",
+                teeColor === 'blue'
+                  ? "border-blue-400 bg-blue-50 text-blue-700 shadow-md"
+                  : "border-border bg-white text-muted-foreground hover:border-blue-300"
+              )}
+            >
+              <div className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center font-bold text-white text-sm shrink-0">T</div>
+              <div className="text-left">
+                <p className="font-bold text-sm">Blue Tees</p>
+                <p className="text-[11px] text-muted-foreground">Senior / Ladies</p>
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* Game Format */}
