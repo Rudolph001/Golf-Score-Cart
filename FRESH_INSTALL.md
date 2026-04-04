@@ -343,9 +343,46 @@ Or if using a Tailscale IP:
 
 Replace `100.x.x.x` with the IP you wrote down in Step 33.
 
-> **GPS over Tailscale:** If you set up HTTPS in Part 7, GPS also works over Tailscale — use `https://golfcart.local:3443` instead of `http://100.x.x.x:3000`.
+> **Note:** `golfcart.local` only resolves on the same Wi-Fi network — it does not work over Tailscale. For GPS over Tailscale see Step 36 below.
 
 This works on mobile data, on a different Wi-Fi network, or anywhere in the world.
+
+### Step 36 — Enable GPS over Tailscale (trusted HTTPS certificate)
+
+Tailscale can issue a proper Let's Encrypt certificate for your Pi. Chrome trusts it automatically — no security warnings, GPS works everywhere on Tailscale.
+
+**Enable HTTPS certificates in your Tailscale account:**
+
+1. Go to https://login.tailscale.com/admin/dns
+2. Under **MagicDNS**, turn it on if it is not already on
+3. Under **HTTPS Certificates**, click **Enable**
+
+**Find your full Tailscale hostname on the Pi:**
+
+    tailscale status
+
+The Pi's hostname will look like `golfcart.tail1234abc.ts.net`. Write it down — you will use it in the next command and as your app URL.
+
+**Replace the self-signed certificate with a Tailscale-issued one:**
+
+    sudo tailscale cert \
+      --cert-file /home/pi/ssl/golfcart.crt \
+      --key-file /home/pi/ssl/golfcart.key \
+      golfcart.TAILNET.ts.net
+
+Replace `golfcart.TAILNET.ts.net` with the full hostname you wrote down.
+
+**Restart the service to load the new certificate:**
+
+    sudo systemctl restart golf-scorecard
+
+**Open the app on your phone with GPS working:**
+
+    https://golfcart.TAILNET.ts.net:3443
+
+Replace `golfcart.TAILNET.ts.net` with your full Tailscale hostname. No security warning will appear and GPS is enabled immediately.
+
+> **Certificate renewal:** Tailscale certificates expire every 90 days. When they do, re-run the `tailscale cert` command above and restart the service. The URL stays exactly the same.
 
 ---
 
@@ -493,7 +530,8 @@ If swap is not listed, re-run Step 7.
 | Disable desktop | `sudo raspi-config nonint do_boot_behaviour B2` |
 | Check Tailscale IP | `tailscale status` |
 | Reconnect Tailscale | `sudo tailscale up` |
-| App URL (HTTP, all devices) | `http://golfcart.local:3000` |
-| App URL (HTTPS, GPS enabled) | `https://golfcart.local:3443` |
+| App URL (HTTP, local Wi-Fi) | `http://golfcart.local:3000` |
+| App URL (HTTPS, GPS, local Wi-Fi) | `https://golfcart.local:3443` |
+| App URL (HTTPS, GPS, Tailscale) | `https://golfcart.TAILNET.ts.net:3443` |
 | SSH from Windows (local) | `ssh pi@golfcart.local` |
 | SSH from Windows (Tailscale) | `ssh pi@100.x.x.x` |
