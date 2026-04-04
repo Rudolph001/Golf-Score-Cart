@@ -21,6 +21,11 @@ async function setupSchema() {
       updated_at TIMESTAMP DEFAULT NOW() NOT NULL
     );
   `);
+  // Migrations: add new columns if they don't exist yet
+  await client.exec(`
+    ALTER TABLE scorecards ADD COLUMN IF NOT EXISTS holes_count INTEGER NOT NULL DEFAULT 18;
+    ALTER TABLE scorecards ADD COLUMN IF NOT EXISTS starting_hole INTEGER NOT NULL DEFAULT 1;
+  `);
 }
 
 await setupSchema();

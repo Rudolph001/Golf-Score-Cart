@@ -64,6 +64,10 @@ export interface Scorecard {
   id: number;
   date: string;
   gameFormat: GameFormat;
+  /** Number of holes in this round */
+  holesCount: 9 | 18;
+  /** Starting hole number (1 = Front 9, 10 = Back 9) */
+  startingHole: 1 | 10;
   players: Player[];
   holeScores: HoleScore[];
   createdAt: string;
@@ -73,6 +77,10 @@ export interface Scorecard {
 export interface CreateScorecardRequest {
   date: string;
   gameFormat: GameFormat;
+  /** Number of holes to play (9 or 18) */
+  holesCount?: 9 | 18;
+  /** Starting hole number (1 = Front 9, 10 = Back 9) */
+  startingHole?: 1 | 10;
   /**
    * @minItems 1
    * @maxItems 4

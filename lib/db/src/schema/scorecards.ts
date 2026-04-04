@@ -6,6 +6,8 @@ export const scorecardsTable = pgTable("scorecards", {
   id: serial("id").primaryKey(),
   date: text("date").notNull(),
   gameFormat: text("game_format").notNull().default("stroke"),
+  holesCount: integer("holes_count").notNull().default(18),
+  startingHole: integer("starting_hole").notNull().default(1),
   players: jsonb("players").notNull().$type<Array<{ name: string; handicap: number }>>(),
   holeScores: jsonb("hole_scores").notNull().$type<Array<{ holeNumber: number; scores: Array<number | null>; shots?: unknown[][] }>>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

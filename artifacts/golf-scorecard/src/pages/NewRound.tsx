@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
 import { format } from "date-fns";
-import { ArrowLeft, UserPlus, X, Play, Crosshair, Trophy, Swords, Users } from "lucide-react";
+import { ArrowLeft, UserPlus, X, Play, Crosshair, Trophy, Swords, Users, Flag } from "lucide-react";
 import { useCreateNewScorecard, usePlayers } from "@/hooks/use-golf";
 import { motion, AnimatePresence } from "framer-motion";
 import type { GameFormat } from "@workspace/api-client-react";
@@ -35,6 +35,8 @@ export default function NewRound() {
   
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [gameFormat, setGameFormat] = useState<GameFormat>("stroke");
+  const [holesCount, setHolesCount] = useState<9 | 18>(18);
+  const [startingHole, setStartingHole] = useState<1 | 10>(1);
   const [teeColor, setTeeColor] = useState<'yellow' | 'blue'>('yellow');
   // Selected player IDs (from roster) or custom entries
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -80,10 +82,11 @@ export default function NewRound() {
     }
 
     createRound.mutate(
-      { data: { date: new Date(date).toISOString(), gameFormat, players: allPlayers } },
+      { data: { date: new Date(date).toISOString(), gameFormat, holesCount, startingHole: holesCount === 9 ? startingHole : 1, players: allPlayers } },
       { onSuccess: (data) => {
+        const firstHole = holesCount === 9 ? startingHole : 1;
         localStorage.setItem(`teeColor_${data.id}`, teeColor);
-        setLocation(`/round/${data.id}/hole/1`);
+        setLocation(`/round/${data.id}/hole/${firstHole}`);
       }}
     );
   };
@@ -188,6 +191,75 @@ export default function NewRound() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Holes */}
+        <div className="glass-card p-5 rounded-2xl">
+          <label className="block text-sm font-bold text-foreground mb-3 font-display">Number of Holes</label>
+          <div className="grid grid-cols-2 gap-3">
+            {([9, 18] as const).map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => {
+                  setHolesCount(n);
+                  if (n === 18) setStartingHole(1);
+                }}
+                className={cn(
+                  "flex flex-col items-center gap-2 py-5 px-2 rounded-2xl border-2 transition-all text-center",
+                  holesCount === n
+                    ? "border-primary bg-primary/8 text-primary shadow-md"
+                    : "border-border bg-white text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                )}
+              >
+                <div className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center",
+                  holesCount === n ? "bg-primary/15" : "bg-muted"
+                )}>
+                  <Flag className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-bold text-sm">{n} Holes</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{n === 9 ? "Half round" : "Full round"}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Front / Back 9 selector */}
+          {holesCount === 9 && (
+            <div className="mt-4">
+              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Which 9?</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setStartingHole(1)}
+                  className={cn(
+                    "flex flex-col items-center gap-1 py-4 px-2 rounded-2xl border-2 transition-all text-center",
+                    startingHole === 1
+                      ? "border-primary bg-primary/8 text-primary shadow-md"
+                      : "border-border bg-white text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                  )}
+                >
+                  <p className="font-bold text-sm">Front 9</p>
+                  <p className="text-[10px] text-muted-foreground">Holes 1–9</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStartingHole(10)}
+                  className={cn(
+                    "flex flex-col items-center gap-1 py-4 px-2 rounded-2xl border-2 transition-all text-center",
+                    startingHole === 10
+                      ? "border-primary bg-primary/8 text-primary shadow-md"
+                      : "border-border bg-white text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                  )}
+                >
+                  <p className="font-bold text-sm">Back 9</p>
+                  <p className="text-[10px] text-muted-foreground">Holes 10–18</p>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Players */}

@@ -58,6 +58,8 @@ export default function PlayHole() {
   const { data: holes, isLoading: loadingHoles } = useCourseHoles();
   const updateScores = useUpdateRoundScores();
 
+  const startingHole = scorecard?.startingHole ?? 1;
+  const holesCount = scorecard?.holesCount ?? 18;
   const [activeTab, setActiveTab] = useState<Tab>("score");
   const [localScores, setLocalScores] = useState<(number | null)[]>([]);
   const [localShots, setLocalShots] = useState<ShotRecord[][]>([]);
@@ -212,7 +214,7 @@ export default function PlayHole() {
       { id, data: { holeScores } },
       {
         onSuccess: () => {
-          if (nextHoleNum !== null && nextHoleNum <= 18) {
+          if (nextHoleNum !== null && nextHoleNum <= holesCount + startingHole - 1) {
             setLocation(`/round/${id}/hole/${nextHoleNum}`);
           } else {
             setLocation(`/scorecard/${id}`);
@@ -269,7 +271,7 @@ export default function PlayHole() {
     setActiveTab("map");
   };
 
-  const progressPct = (currentHoleNum / 18) * 100;
+  const progressPct = ((currentHoleNum - startingHole + 1) / holesCount) * 100;
 
   const playerTotals = scorecard.players.map((player, pIdx) => {
     let gross = 0;
@@ -554,19 +556,19 @@ export default function PlayHole() {
       <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-border p-4 pb-safe z-30">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
           <button
-            onClick={() => saveAndNavigate(currentHoleNum > 1 ? currentHoleNum - 1 : null)}
+            onClick={() => saveAndNavigate(currentHoleNum > (scorecard?.startingHole ?? 1) ? currentHoleNum - 1 : null)}
             className="flex-1 py-5 px-2 rounded-xl border-2 border-border font-bold text-foreground flex items-center justify-center hover:bg-muted transition-colors"
           >
             <ChevronLeft className="w-6 h-6 mr-1" /> Prev
           </button>
 
           <button
-            onClick={() => saveAndNavigate(currentHoleNum < 18 ? currentHoleNum + 1 : null)}
+            onClick={() => saveAndNavigate(currentHoleNum < holesCount + startingHole - 1 ? currentHoleNum + 1 : null)}
             disabled={updateScores.isPending}
             className="flex-[2] py-5 px-2 rounded-xl font-bold text-lg text-primary-foreground bg-primary shadow-lg shadow-primary/25 flex items-center justify-center hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-60"
           >
             {updateScores.isPending ? "Saving..." :
-              currentHoleNum < 18
+              currentHoleNum < holesCount + startingHole - 1
                 ? <><span>Next Hole</span><ChevronRight className="w-6 h-6 ml-1" /></>
                 : <><span>Finish Round</span><CheckCircle2 className="w-6 h-6 ml-2" /></>
             }

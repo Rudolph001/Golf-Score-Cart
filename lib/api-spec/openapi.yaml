@@ -263,6 +263,14 @@ components:
           type: string
         gameFormat:
           $ref: "#/components/schemas/GameFormat"
+        holesCount:
+          type: integer
+          enum: [9, 18]
+          description: Number of holes in this round
+        startingHole:
+          type: integer
+          enum: [1, 10]
+          description: Starting hole number (1 = Front 9, 10 = Back 9)
         players:
           type: array
           items:
@@ -279,6 +287,8 @@ components:
         - id
         - date
         - gameFormat
+        - holesCount
+        - startingHole
         - players
         - holeScores
         - createdAt
@@ -291,6 +301,16 @@ components:
           type: string
         gameFormat:
           $ref: "#/components/schemas/GameFormat"
+        holesCount:
+          type: integer
+          enum: [9, 18]
+          default: 18
+          description: Number of holes to play (9 or 18)
+        startingHole:
+          type: integer
+          enum: [1, 10]
+          default: 1
+          description: Starting hole number (1 = Front 9, 10 = Back 9)
         players:
           type: array
           items:

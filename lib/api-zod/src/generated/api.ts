@@ -47,6 +47,8 @@ export const ListScorecardsResponseItem = zod.object({
     .describe(
       "stroke = Stroke Play, stableford = Stableford Points, match = Match Play",
     ),
+  holesCount: zod.union([zod.literal(9), zod.literal(18)]).describe("Number of holes in this round"),
+  startingHole: zod.union([zod.literal(1), zod.literal(10)]).describe("Starting hole number (1 = Front 9, 10 = Back 9)"),
   players: zod.array(
     zod.object({
       name: zod.string(),
@@ -91,6 +93,8 @@ export const CreateScorecardBody = zod.object({
     .describe(
       "stroke = Stroke Play, stableford = Stableford Points, match = Match Play",
     ),
+  holesCount: zod.union([zod.literal(9), zod.literal(18)]).optional().default(18).describe("Number of holes to play (9 or 18)"),
+  startingHole: zod.union([zod.literal(1), zod.literal(10)]).optional().default(1).describe("Starting hole number (1 = Front 9, 10 = Back 9)"),
   players: zod
     .array(
       zod.object({
@@ -117,6 +121,8 @@ export const GetScorecardResponse = zod.object({
     .describe(
       "stroke = Stroke Play, stableford = Stableford Points, match = Match Play",
     ),
+  holesCount: zod.union([zod.literal(9), zod.literal(18)]).describe("Number of holes in this round"),
+  startingHole: zod.union([zod.literal(1), zod.literal(10)]).describe("Starting hole number (1 = Front 9, 10 = Back 9)"),
   players: zod.array(
     zod.object({
       name: zod.string(),
@@ -201,6 +207,8 @@ export const UpdateScorecardResponse = zod.object({
     .describe(
       "stroke = Stroke Play, stableford = Stableford Points, match = Match Play",
     ),
+  holesCount: zod.union([zod.literal(9), zod.literal(18)]).describe("Number of holes in this round"),
+  startingHole: zod.union([zod.literal(1), zod.literal(10)]).describe("Starting hole number (1 = Front 9, 10 = Back 9)"),
   players: zod.array(
     zod.object({
       name: zod.string(),

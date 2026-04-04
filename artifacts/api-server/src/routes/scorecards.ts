@@ -17,6 +17,8 @@ function formatScorecard(row: typeof scorecardsTable.$inferSelect) {
     id: row.id,
     date: row.date,
     gameFormat: row.gameFormat ?? "stroke",
+    holesCount: (row.holesCount ?? 18) as 9 | 18,
+    startingHole: (row.startingHole ?? 1) as 1 | 10,
     players: row.players,
     holeScores: row.holeScores,
     createdAt: row.createdAt.toISOString(),
@@ -31,8 +33,10 @@ router.get("/", async (_req, res) => {
 
 router.post("/", async (req, res) => {
   const body = CreateScorecardBody.parse(req.body);
-  const holeScores = Array.from({ length: 18 }, (_, i) => ({
-    holeNumber: i + 1,
+  const holesCount = body.holesCount ?? 18;
+  const startingHole = body.startingHole ?? 1;
+  const holeScores = Array.from({ length: holesCount }, (_, i) => ({
+    holeNumber: startingHole + i,
     scores: body.players.map(() => null),
     shots: body.players.map(() => []),
   }));
@@ -41,6 +45,8 @@ router.post("/", async (req, res) => {
     .values({
       date: body.date,
       gameFormat: body.gameFormat ?? "stroke",
+      holesCount,
+      startingHole,
       players: body.players,
       holeScores,
     })
